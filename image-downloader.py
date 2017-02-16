@@ -26,7 +26,8 @@ See \"/{command} help\" for more info.".format(
 	command=CMD_NAME)
 
 def on_command(word, word_eol, userdata):
-	if len(word) < 2 or word[1].casefold() == "help":
+	command = word[1].casefold() if len(word) > 1 else None
+	if command == "help":
 		print_command_help()
 	else:
 		print_command_help()
