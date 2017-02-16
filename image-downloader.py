@@ -24,33 +24,93 @@ import hexchat
 def error(*objects, sep=" "):
 	buf = io.StringIO()
 	print(*objects, sep=sep, end="", file=buf)
-	print("[{script}] ERROR: {message}".format(
-		script=__module_name__,
+	print("[{addon}] ERROR: {message}".format(
+		addon=__module_name__,
 		message=buf.getvalue()))
 
 # Script control command ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 CMD_NAME = "IMGDLER"
-CMD_HELP = "Get/set options for the {script} script. \
+CMD_HELP = "Get/set options for the {addon} addon. \
 See \"/{command} help\" for more info.".format(
-	script=__module_name__,
+	addon=__module_name__,
 	command=CMD_NAME)
 
 def on_command(word, word_eol, userdata):
-	command = word[1].casefold() if len(word) > 1 else None
-	if command is None or command in [ "help", "--help", "-h" ]:
-		print_command_help()
+	"""Handle plugin control commands.
+	
+	`word[0]` should always be the control command used in hexchat to trigger
+	this function.
+	
+	`word[1]` is the desired control function. The remaining items in `word` are
+	arguments to the control function named in `word[1]`.
+	
+	Recognized control functions with their arguments are:
+		* help : prints list of recognized control functions.
+		* help <func> : prints help about function <func>.
+	
+	Parameters
+	----------
+	word : list of str
+		`word[0]` should always be the control command.
+		`word[1]`, if present, should be the control function name.
+		`word[2:]`, if present, should be the control function arguments.
+	word_eol : list of str
+		not used
+	userdata :
+		not used
+	
+	Returns
+	-------
+	int
+		`hexchat.EAT_ALL`
+	"""
+	
+	# Get function name.
+	function = word[1].casefold() if len(word) > 1 else None
+	
+	# Help function.
+	if function is None or function in [ "help", "--help", "-h" ]:
+		# Get function that help is being requested for, if any.
+		function = word[2] if len(word) > 2 else None
+		args = word[3:] if len(word) > 3 else None
+		print_command_help(function=function, args=args)
+	
+	# Unrecognized function.
 	else:
-		error("unrecognized control command:", command)
+		error("unrecognized control function:", function)
 	return hexchat.EAT_ALL
 
-def print_command_help(context=None):
-	if context is None:
-		context = hexchat
-	context.prnt("Help pending.")
+def print_command_help(**kwargs):
+	"""Print help info for addon control command.
+	
+	Parameters
+	----------
+	function : str, optional
+		name of the control function to print help for - if not set, control
+		functions are listed
+	args : optional
+		any additional help arguments
+	context : hexchat.context, optional
+		the context to print to
+	"""
+	
+	function = kwargs.get("function")
+	args = kwargs.get("args")
+	context = kwargs.get("context", hexchat)
+	
+	# General help.
+	if function is None:
+		if args is not None:
+			error("unexpected arguments:", args)
+		context.prnt("General help pending.")
+	
+	# Unrecognized function.
+	else:
+		error("unrecognized control function:", function)
 
 hexchat.hook_command(CMD_NAME, on_command, help=CMD_HELP)
 
 # Print a message to confirm that the plugin was successfully loaded ~~~~~~~~~~~
-hexchat.prnt("{script} {version} plugin loaded".format(
-	script=__module_name__,
+hexchat.prnt("{addon} {version} plugin loaded".format(
+	addon=__module_name__,
 	version=__module_version__))
