@@ -16,7 +16,17 @@ __module_version__     = "0.1-alpha1"
 __module_description__ = "Automatically download images mentioned in a channel"
 __module_author__      = "Saria"
 
+import io
+
 import hexchat
+
+# Output functions ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+def error(*objects, sep=" "):
+	buf = io.StringIO()
+	print(*objects, sep=sep, end="", file=buf)
+	print("[{script}] ERROR: {message}".format(
+		script=__module_name__,
+		message=buf.getvalue()))
 
 # Script control command ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 CMD_NAME = "IMGDLER"
@@ -27,10 +37,10 @@ See \"/{command} help\" for more info.".format(
 
 def on_command(word, word_eol, userdata):
 	command = word[1].casefold() if len(word) > 1 else None
-	if command == "help":
+	if command is None or command in [ "help", "--help", "-h" ]:
 		print_command_help()
 	else:
-		print_command_help()
+		error("unrecognized control command:", command)
 	return hexchat.EAT_ALL
 
 def print_command_help(context=None):
