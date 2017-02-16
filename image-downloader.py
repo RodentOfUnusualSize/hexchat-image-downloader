@@ -18,5 +18,28 @@ __module_author__      = "Saria"
 
 import hexchat
 
-# Print a message to confirm that the plugin was successfully loaded.
-hexchat.prnt("{} {} plugin loaded".format(__module_name__, __module_version__))
+# Script control command ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+CMD_NAME = "IMGDLER"
+CMD_HELP = "Get/set options for the {script} script. \
+See \"/{command} help\" for more info.".format(
+	script=__module_name__,
+	command=CMD_NAME)
+
+def on_command(word, word_eol, userdata):
+	if len(word) < 2 or word[1].casefold() == "help":
+		print_command_help()
+	else:
+		print_command_help()
+	return hexchat.EAT_ALL
+
+def print_command_help(context=None):
+	if context is None:
+		context = hexchat
+	context.prnt("Help pending.")
+
+hexchat.hook_command(CMD_NAME, on_command, help=CMD_HELP)
+
+# Print a message to confirm that the plugin was successfully loaded ~~~~~~~~~~~
+hexchat.prnt("{script} {version} plugin loaded".format(
+	script=__module_name__,
+	version=__module_version__))
