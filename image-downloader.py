@@ -80,7 +80,20 @@ def on_command(word, word_eol, userdata):
 		error("unrecognized control function:", function)
 	return hexchat.EAT_ALL
 
-HELP_TEXT = """General help pending."""
+HELP_TEXT = \
+"""The {addon} addon automatically downloads images linked to in a channel.
+
+The command "/{control_command}" controls the plugin.
+To use one of the control functions: "/{control_command} <FUNCTION>".
+For help on a specific function:     "/{control_command} help <FUNCTION>".
+
+The functions are:
+
+    HELP        Display this help text
+""".format(
+	addon=__module_name__,
+	control_command=CMD_NAME
+)
 
 def print_command_help(**kwargs):
 	"""Print help info for addon control command.
