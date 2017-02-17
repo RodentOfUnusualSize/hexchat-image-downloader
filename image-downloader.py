@@ -80,6 +80,8 @@ def on_command(word, word_eol, userdata):
 		error("unrecognized control function:", function)
 	return hexchat.EAT_ALL
 
+HELP_TEXT = """General help pending."""
+
 def print_command_help(**kwargs):
 	"""Print help info for addon control command.
 	
@@ -102,7 +104,7 @@ def print_command_help(**kwargs):
 	if function is None:
 		if args is not None:
 			error("unexpected arguments:", args)
-		context.prnt("General help pending.")
+		context.prnt(HELP_TEXT)
 	
 	# Unrecognized function.
 	else:
