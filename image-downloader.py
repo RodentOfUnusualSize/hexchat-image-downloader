@@ -21,8 +21,11 @@ import io
 import hexchat
 
 # Output functions ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-FMT_MESSAGE = "\017[\00302{addon}\017] {message}"
-FMT_ERROR = "\017[\00302{addon}\017] \002\00304ERROR:\017 {message}"
+FMT_DEFAULT_MESSAGE = "\017[\00302{addon}\017] {message}"
+FMT_DEFAULT_ERROR = "\017[\00302{addon}\017] \002\00304ERROR:\017 {message}"
+
+FMT_MESSAGE = FMT_DEFAULT_MESSAGE
+FMT_ERROR = FMT_DEFAULT_ERROR
 
 def _message_impl(*objects, sep=" ", fmt=FMT_MESSAGE):
 	"""Print message with given format.
@@ -95,7 +98,7 @@ def on_command(word, word_eol, userdata):
 		`word[1]`, if present, should be the control function name.
 		`word[2:]`, if present, should be the control function arguments.
 	word_eol : list of str
-		not used
+		`word_eol[2]`, if present, should be the control function arguments.
 	userdata :
 		not used
 	
@@ -115,6 +118,40 @@ def on_command(word, word_eol, userdata):
 		args = word[3:] if len(word) > 3 else None
 		print_command_help(function=function, args=args)
 	
+	# Message format function.
+	elif function == "msgfmt":
+		global FMT_MESSAGE
+		# Save existing format.
+		fmt = FMT_MESSAGE
+		# If there was no format given, reset to default.
+		if len(word) > 2:
+			FMT_MESSAGE = word_eol[2]
+		else:
+			FMT_MESSAGE = FMT_DEFAULT_MESSAGE
+		# Give the new format a whirl, and if it fails, reset to the old one.
+		try:
+			message("sample message")
+		except Exception as x:
+			FMT_MESSAGE = fmt
+			error(type(x).__name__ + ":", x)
+	
+	# Error format function.
+	elif function == "errfmt":
+		global FMT_ERROR
+		# Save existing format.
+		fmt = FMT_ERROR
+		# If there was no format given, reset to default.
+		if len(word) > 2:
+			FMT_ERROR = word_eol[2]
+		else:
+			FMT_ERROR = FMT_DEFAULT_ERROR
+		# Give the new format a whirl, and if it fails, reset to the old one.
+		try:
+			error("sample message")
+		except Exception as x:
+			FMT_ERROR = fmt
+			error(type(x).__name__ + ":", x)
+	
 	# Unrecognized function.
 	else:
 		error("unrecognized control function:", function)
@@ -130,6 +167,8 @@ For help on a specific function:     "/{control_command} help <FUNCTION>".
 The functions are:
 
     HELP        Display this help text
+    MSGFMT      Change the format of regular messages
+    ERRFMT      Change the format of error messages
 """.format(
 	addon=__module_name__,
 	control_command=CMD_NAME
