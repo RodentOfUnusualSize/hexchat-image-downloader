@@ -24,15 +24,16 @@ import hexchat
 FMT_MESSAGE = "\017[\00302{addon}\017] {message}"
 FMT_ERROR = "\017[\00302{addon}\017] \002\00304ERROR:\017 {message}"
 
-def message(*objects, sep=" "):
+def _message_impl(*objects, sep=" ", fmt=FMT_MESSAGE):
 	buf = io.StringIO()
 	print(*objects, sep=sep, end="", file=buf)
-	print(FMT_MESSAGE.format(addon=__module_name__, message=buf.getvalue()))
+	print(fmt.format(addon=__module_name__, message=buf.getvalue()))
+
+def message(*objects, sep=" "):
+	_message_impl(*objects, sep=sep, fmt=FMT_MESSAGE)
 
 def error(*objects, sep=" "):
-	buf = io.StringIO()
-	print(*objects, sep=sep, end="", file=buf)
-	print(FMT_ERROR.format(addon=__module_name__, message=buf.getvalue()))
+	_message_impl(*objects, sep=sep, fmt=FMT_ERROR)
 
 # Script control command ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 CMD_NAME = "IMGDLER"
