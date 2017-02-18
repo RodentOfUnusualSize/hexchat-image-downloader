@@ -21,12 +21,18 @@ import io
 import hexchat
 
 # Output functions ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+FMT_MESSAGE = "[{addon}] {message}"
+FMT_ERROR = "[{addon}] ERROR: {message}"
+
+def message(*objects, sep=" "):
+	buf = io.StringIO()
+	print(*objects, sep=sep, end="", file=buf)
+	print(FMT_MESSAGE.format(addon=__module_name__, message=buf.getvalue()))
+
 def error(*objects, sep=" "):
 	buf = io.StringIO()
 	print(*objects, sep=sep, end="", file=buf)
-	print("[{addon}] ERROR: {message}".format(
-		addon=__module_name__,
-		message=buf.getvalue()))
+	print(FMT_ERROR.format(addon=__module_name__, message=buf.getvalue()))
 
 # Script control command ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 CMD_NAME = "IMGDLER"
