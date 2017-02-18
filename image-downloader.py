@@ -25,14 +25,47 @@ FMT_MESSAGE = "\017[\00302{addon}\017] {message}"
 FMT_ERROR = "\017[\00302{addon}\017] \002\00304ERROR:\017 {message}"
 
 def _message_impl(*objects, sep=" ", fmt=FMT_MESSAGE):
+	"""Print message with given format.
+	
+	The following variables will be replaced in the `fmt` format string:
+		`addon` : replaced with `__module_name__`
+		`message` : replaced with the formatted `objects` separated by `sep`
+	
+	Parameters
+	----------
+	objects : 
+		objects to print
+	sep : str, optional
+		the separator to print between objects
+	fmt : str, optional
+		format of message to print
+	"""
 	buf = io.StringIO()
 	print(*objects, sep=sep, end="", file=buf)
 	print(fmt.format(addon=__module_name__, message=buf.getvalue()))
 
 def message(*objects, sep=" "):
+	"""Print message.
+	
+	Parameters
+	----------
+	objects : 
+		objects to print
+	sep : str, optional
+		the separator to print between objects
+	"""
 	_message_impl(*objects, sep=sep, fmt=FMT_MESSAGE)
 
 def error(*objects, sep=" "):
+	"""Print error message.
+	
+	Parameters
+	----------
+	objects : 
+		objects to print
+	sep : str, optional
+		the separator to print between objects
+	"""
 	_message_impl(*objects, sep=sep, fmt=FMT_ERROR)
 
 # Script control command ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
