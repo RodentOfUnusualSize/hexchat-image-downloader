@@ -21,8 +21,8 @@ import io
 import hexchat
 
 # Output functions ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-FMT_MESSAGE = "[{addon}] {message}"
-FMT_ERROR = "[{addon}] ERROR: {message}"
+FMT_MESSAGE = "\017[\00302{addon}\017] {message}"
+FMT_ERROR = "\017[\00302{addon}\017] \002\00304ERROR:\017 {message}"
 
 def message(*objects, sep=" "):
 	buf = io.StringIO()
