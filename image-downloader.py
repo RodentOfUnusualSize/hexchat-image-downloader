@@ -174,6 +174,42 @@ The functions are:
 	control_command=CMD_NAME
 )
 
+HELP_TEXT_MSGFMT = \
+"""Set the format for regular messages printed by the {addon} addon.
+
+Usage: /{control_command} MSGFMT <format string>
+
+<format string> can be any valid Python format string.
+There are two special keys:
+    {{addon}} : expands to the name of addon ("{addon}")
+    {{message}} : expands to the message
+
+You may use Hexchat control codes (like bold and coloring).
+
+If no format string is given, the format is set to the addon default.
+""".format(
+	addon=__module_name__,
+	control_command=CMD_NAME
+)
+
+HELP_TEXT_ERRFMT = \
+"""Set the format for error messages printed by the {addon} addon.
+
+Usage: /{control_command} ERRFMT <format string>
+
+<format string> can be any valid Python format string.
+There are two special keys:
+    {{addon}} : expands to the name of addon ("{addon}")
+    {{message}} : expands to the error message
+
+You may use Hexchat control codes (like bold and coloring).
+
+If no format string is given, the format is set to the addon default.
+""".format(
+	addon=__module_name__,
+	control_command=CMD_NAME
+)
+
 def print_command_help(**kwargs):
 	"""Print help info for addon control command.
 	
@@ -192,11 +228,27 @@ def print_command_help(**kwargs):
 	args = kwargs.get("args")
 	context = kwargs.get("context", hexchat)
 	
+	# Case fold function name for easier comparison.
+	if function is not None:
+		function = function.casefold()
+	
 	# General help.
 	if function is None:
 		if args is not None:
 			error("unexpected arguments:", args)
 		context.prnt(HELP_TEXT)
+	
+	# MSGFMT help.
+	elif function == "msgfmt":
+		if args is not None:
+			error("unexpected arguments:", args)
+		context.prnt(HELP_TEXT_MSGFMT)
+	
+	# MSGFMT help.
+	elif function == "errfmt":
+		if args is not None:
+			error("unexpected arguments:", args)
+		context.prnt(HELP_TEXT_ERRFMT)
 	
 	# Unrecognized function.
 	else:
