@@ -244,7 +244,7 @@ def print_command_help(**kwargs):
 			error("unexpected arguments:", args)
 		context.prnt(HELP_TEXT_MSGFMT)
 	
-	# MSGFMT help.
+	# ERRFMT help.
 	elif function == "errfmt":
 		if args is not None:
 			error("unexpected arguments:", args)
