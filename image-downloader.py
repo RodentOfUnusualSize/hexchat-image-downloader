@@ -21,12 +21,55 @@ import io
 import hexchat
 
 # Output functions ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-def error(*objects, sep=" "):
+FMT_DEFAULT_MESSAGE = "\017[\00302{addon}\017] {message}"
+FMT_DEFAULT_ERROR = "\017[\00302{addon}\017] \002\00304ERROR:\017 {message}"
+
+FMT_MESSAGE = FMT_DEFAULT_MESSAGE
+FMT_ERROR = FMT_DEFAULT_ERROR
+
+def _message_impl(*objects, sep=" ", fmt=FMT_MESSAGE):
+	"""Print message with given format.
+	
+	The following variables will be replaced in the `fmt` format string:
+		`addon` : replaced with `__module_name__`
+		`message` : replaced with the formatted `objects` separated by `sep`
+	
+	Parameters
+	----------
+	objects : 
+		objects to print
+	sep : str, optional
+		the separator to print between objects
+	fmt : str, optional
+		format of message to print
+	"""
 	buf = io.StringIO()
 	print(*objects, sep=sep, end="", file=buf)
-	print("[{addon}] ERROR: {message}".format(
-		addon=__module_name__,
-		message=buf.getvalue()))
+	print(fmt.format(addon=__module_name__, message=buf.getvalue()))
+
+def message(*objects, sep=" "):
+	"""Print message.
+	
+	Parameters
+	----------
+	objects : 
+		objects to print
+	sep : str, optional
+		the separator to print between objects
+	"""
+	_message_impl(*objects, sep=sep, fmt=FMT_MESSAGE)
+
+def error(*objects, sep=" "):
+	"""Print error message.
+	
+	Parameters
+	----------
+	objects : 
+		objects to print
+	sep : str, optional
+		the separator to print between objects
+	"""
+	_message_impl(*objects, sep=sep, fmt=FMT_ERROR)
 
 # Script control command ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 CMD_NAME = "IMGDLER"
@@ -55,7 +98,7 @@ def on_command(word, word_eol, userdata):
 		`word[1]`, if present, should be the control function name.
 		`word[2:]`, if present, should be the control function arguments.
 	word_eol : list of str
-		not used
+		`word_eol[2]`, if present, should be the control function arguments.
 	userdata :
 		not used
 	
@@ -75,6 +118,40 @@ def on_command(word, word_eol, userdata):
 		args = word[3:] if len(word) > 3 else None
 		print_command_help(function=function, args=args)
 	
+	# Message format function.
+	elif function == "msgfmt":
+		global FMT_MESSAGE
+		# Save existing format.
+		fmt = FMT_MESSAGE
+		# If there was no format given, reset to default.
+		if len(word) > 2:
+			FMT_MESSAGE = word_eol[2]
+		else:
+			FMT_MESSAGE = FMT_DEFAULT_MESSAGE
+		# Give the new format a whirl, and if it fails, reset to the old one.
+		try:
+			message("sample message")
+		except Exception as x:
+			FMT_MESSAGE = fmt
+			error(type(x).__name__ + ":", x)
+	
+	# Error format function.
+	elif function == "errfmt":
+		global FMT_ERROR
+		# Save existing format.
+		fmt = FMT_ERROR
+		# If there was no format given, reset to default.
+		if len(word) > 2:
+			FMT_ERROR = word_eol[2]
+		else:
+			FMT_ERROR = FMT_DEFAULT_ERROR
+		# Give the new format a whirl, and if it fails, reset to the old one.
+		try:
+			error("sample message")
+		except Exception as x:
+			FMT_ERROR = fmt
+			error(type(x).__name__ + ":", x)
+	
 	# Unrecognized function.
 	else:
 		error("unrecognized control function:", function)
@@ -90,6 +167,44 @@ For help on a specific function:     "/{control_command} help <FUNCTION>".
 The functions are:
 
     HELP        Display this help text
+    MSGFMT      Change the format of regular messages
+    ERRFMT      Change the format of error messages
+""".format(
+	addon=__module_name__,
+	control_command=CMD_NAME
+)
+
+HELP_TEXT_MSGFMT = \
+"""Set the format for regular messages printed by the {addon} addon.
+
+Usage: /{control_command} MSGFMT <format string>
+
+<format string> can be any valid Python format string.
+There are two special keys:
+    {{addon}} : expands to the name of addon ("{addon}")
+    {{message}} : expands to the message
+
+You may use Hexchat control codes (like bold and coloring).
+
+If no format string is given, the format is set to the addon default.
+""".format(
+	addon=__module_name__,
+	control_command=CMD_NAME
+)
+
+HELP_TEXT_ERRFMT = \
+"""Set the format for error messages printed by the {addon} addon.
+
+Usage: /{control_command} ERRFMT <format string>
+
+<format string> can be any valid Python format string.
+There are two special keys:
+    {{addon}} : expands to the name of addon ("{addon}")
+    {{message}} : expands to the error message
+
+You may use Hexchat control codes (like bold and coloring).
+
+If no format string is given, the format is set to the addon default.
 """.format(
 	addon=__module_name__,
 	control_command=CMD_NAME
@@ -113,11 +228,27 @@ def print_command_help(**kwargs):
 	args = kwargs.get("args")
 	context = kwargs.get("context", hexchat)
 	
+	# Case fold function name for easier comparison.
+	if function is not None:
+		function = function.casefold()
+	
 	# General help.
 	if function is None:
 		if args is not None:
 			error("unexpected arguments:", args)
 		context.prnt(HELP_TEXT)
+	
+	# MSGFMT help.
+	elif function == "msgfmt":
+		if args is not None:
+			error("unexpected arguments:", args)
+		context.prnt(HELP_TEXT_MSGFMT)
+	
+	# ERRFMT help.
+	elif function == "errfmt":
+		if args is not None:
+			error("unexpected arguments:", args)
+		context.prnt(HELP_TEXT_ERRFMT)
 	
 	# Unrecognized function.
 	else:
