@@ -17,6 +17,8 @@ __module_description__ = "Automatically download images mentioned in a channel"
 __module_author__      = "Saria"
 
 import io
+import os.path
+import requests
 
 import hexchat
 
@@ -72,7 +74,8 @@ def error(*objects, sep=" "):
 	_message_impl(*objects, sep=sep, fmt=FMT_ERROR)
 
 # TLDs list ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-TLDS_LIST = "image-downloader.tlds"
+TLDS_LIST_URL = "https://data.iana.org/TLD/tlds-alpha-by-domain.txt"
+TLDS_LIST = os.path.join(os.path.dirname(__file__), "image-downloader.tlds")
 
 def tlds_load():
 	try:
@@ -82,8 +85,44 @@ def tlds_load():
 		return tlds_update()
 
 def tlds_update():
-	# TODO: implement.
-	return []
+	try:
+		# Download the TLD list.
+		r = requests.get(TLDS_LIST_URL, timeout=3)
+		r.raise_for_status()
+		
+		# Go through the downloaded data, stripping comments (which begin with
+		# "#") and blank lines, and handling internationalized domain names.
+		tlds = []
+		for tld in r.text.splitlines():
+			# Lower case the line, because that's necessary for IDNA decoding
+			# later.
+			tld = tld.strip().lower()
+			
+			# Skip comment lines and blank lines.
+			if not tld or tld.startswith("#"):
+				continue
+			
+			# Append the TLD.
+			tlds.append(tld)
+			
+			# Check to see if the TLD is a punycoded IDNA label.
+			if tld.startswith("xn--"):
+				# If so, encode the string to bytes (it's ASCII), then decode
+				# that using the IDNA encoding. Note that the string MUST be
+				# lowercase for this to work (which it's not by default).
+				tlds.append(tld.encode("ascii").decode("idna"))
+		
+		# Now that we've got the TLD list, save it to the TLD list file.
+		with open(TLDS_LIST, "w") as f:
+			for tld in tlds:
+				f.write(tld)
+				f.write("\n")
+		
+		# And then return it.
+		return tlds
+	except Exception as x:
+		error(type(x).__name__ + ":", x)
+		raise
 
 # Script control command ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 CMD_NAME = "IMGDLER"
