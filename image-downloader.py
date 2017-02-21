@@ -71,6 +71,20 @@ def error(*objects, sep=" "):
 	"""
 	_message_impl(*objects, sep=sep, fmt=FMT_ERROR)
 
+# TLDs list ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+TLDS_LIST = "image-downloader.tlds"
+
+def tlds_load():
+	try:
+		with open(TLDS_LIST) as f:
+			return [ tld for tld in f ]
+	except FileNotFoundError:
+		return tlds_update()
+
+def tlds_update():
+	# TODO: implement.
+	return []
+
 # Script control command ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 CMD_NAME = "IMGDLER"
 CMD_HELP = "Get/set options for the {addon} addon. \
