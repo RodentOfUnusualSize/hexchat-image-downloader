@@ -78,13 +78,35 @@ TLDS_LIST_URL = "https://data.iana.org/TLD/tlds-alpha-by-domain.txt"
 TLDS_LIST = os.path.join(os.path.dirname(__file__), "image-downloader.tlds")
 
 def tlds_load():
+	"""Load the TLD list.
+	
+	Attempt to load the list of all legal TLDs from the TLD list file. If that
+	fails, call `tlds_update()`.
+	
+	Returns
+	-------
+	list of str
+		list of all legal TLDs
+	"""
 	try:
 		with open(TLDS_LIST) as f:
+			# TODO: Check file age and force update if too old.
 			return [ tld.rstrip("\n") for tld in f ]
 	except FileNotFoundError:
 		return tlds_update()
 
 def tlds_update():
+	"""Update the TLD list.
+	
+	Download the latest TLD list from the IANA, then process it to produce a
+	list of all legal TLD strings. Save that list to the TLD list file, and
+	return the list.
+	
+	Returns
+	-------
+	list of str
+		list of all legal TLDs
+	"""
 	try:
 		# Download the TLD list.
 		r = requests.get(TLDS_LIST_URL, timeout=3)
