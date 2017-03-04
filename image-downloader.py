@@ -80,7 +80,7 @@ TLDS_LIST = os.path.join(os.path.dirname(__file__), "image-downloader.tlds")
 def tlds_load():
 	try:
 		with open(TLDS_LIST) as f:
-			return [ tld for tld in f ]
+			return [ tld.rstrip("\n") for tld in f ]
 	except FileNotFoundError:
 		return tlds_update()
 
